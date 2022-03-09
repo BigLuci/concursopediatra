@@ -1,0 +1,47 @@
+version: "3.7"
+services:
+  app_chamamento:
+    image: :registry.gitlab.com/gustav-dev17/processo-rh-sesam:1.0.0
+    container_name: chamamento-app
+    restart: unless-stopped   
+    networks:
+      - ses_am
+
+  db_chamamento:
+    image: mariadb:10.5
+    container_name: chamamento-db
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_USER: ${DB_USERNAME}
+      SERVICE_TAGS: dev
+      SERVICE_NAME: mysql
+    ports:
+      - 8611:3306
+    volumes:
+      - chamamento_volumes:/var/lib/mysql
+    networks:
+      - ses_am
+
+  nginx_chamamento:
+    image: nginx:1.17-alpine
+    container_name: chamamento-nginx
+    restart: unless-stopped
+    ports:
+      - 8610:80
+    volumes:
+      - ./:/var/www
+      - ./docker-compose/nginx:/etc/nginx/conf.d
+    networks:
+      - ses_am
+
+networks:
+  ses_am:
+    external:
+      name: susam0
+    #driver: bridge
+
+volumes:
+  chamamento_volumes: {}
